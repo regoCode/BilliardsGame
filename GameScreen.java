@@ -7,7 +7,7 @@ public class GameScreen extends JFrame {
 	public GameScreen(MainMenu mainMenu) {
 		super("Billiards Game");
 		this.mainMenu = mainMenu;
-		setSize(1000, 650);
+		setSize(1000, 660);
 		setLocationRelativeTo(null);
 		setResizable(false);
 		setDefaultCloseOperation(DISPOSE_ON_CLOSE);
