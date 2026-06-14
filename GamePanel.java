@@ -6,14 +6,32 @@ import javax.swing.*;
 public class GamePanel extends JPanel {
 	private final ArrayList<Ball> balls = new ArrayList<>();
 	private final int BRADIUS = 10;
-	private final int TABLE_LEFT = 100;
-	private final int TABLE_TOP = 100;
-	private final int TABLE_RIGHT = 890;
-	private final int TABLE_BOTTOM = 470;
+	
+	private final int[][] WALL_BOUNDS = {
+			{125, 40, 335, 50}, 	//top let wall
+		    {525, 40, 335, 50},		//top right wall
+		    {125, 465, 335, 50},	//bottom left wall
+		    {525, 465, 335, 50},	//bottom right wall
+		    {50, 110, 50, 335},		//left wall
+		    {885, 110, 50, 335},	//right wall
 
+		};
+	private final int[][] POCKETS = {
+			{50, 40, 60, 60},		//top left
+			{460, 35, 65, 65},		//top middle
+			{875, 40, 60, 60},		//top right
+			{50, 455, 60, 60},		//bottom left
+			{460, 455, 65, 65},		//bottom middle
+			{875, 455, 60, 60}		//bottom right
+	};
+	
+	
+	
 	private CueBall cueBall;
 	private Image bgImage;
-
+	
+	private int totalShots = 0;
+	
 	public GamePanel() {
 		ImageIcon icon = new ImageIcon(getClass().getResource("/images/gametable.jpg"));
 		bgImage = icon.getImage();
@@ -48,6 +66,7 @@ public class GamePanel extends JPanel {
 				if (cueBall.isAiming()) {
 					cueBall.updateAim(e.getX(), e.getY());
 					cueBall.shoot();
+					totalShots++;
 				}
 			}
 		});
@@ -58,10 +77,17 @@ public class GamePanel extends JPanel {
 				cueBall.updateAim(e.getX(),e.getY());
 			}
 		});
-
+		
 		Timer timer = new Timer(16, e -> {
 			updateGame();
 			repaint();
+			for (int i = 0; i < balls.size(); i++) {
+				for (int j = i + 1; j < balls.size(); j++) {
+					Ball b1 = balls.get(i);
+					Ball b2 = balls.get(j);
+					b1.collision(b2);
+				}
+			}
 		});
 		timer.start();
 	}
@@ -70,8 +96,13 @@ public class GamePanel extends JPanel {
 		for (Ball ball : balls) {
 			if (!ball.isScored()) {
 				ball.update();
-				ball.bounceOffWalls(TABLE_LEFT, TABLE_TOP, TABLE_RIGHT, TABLE_BOTTOM);
-			}
+				for (int[] wall : WALL_BOUNDS) {
+					ball.bounceOffWalls(wall[0], wall[1], wall[2], wall[3]);
+				}
+				for (int[] pocket : POCKETS) {
+					ball.scoreRules(pocket[0], pocket[1], pocket[2], pocket[3]);
+				}
+			}	
 		}
 	}
 
@@ -81,7 +112,16 @@ public class GamePanel extends JPanel {
 
 		g.drawImage(bgImage, 0, 0, getWidth(), getHeight(), this);
 		for (Ball ball : balls) {
-			ball.draw(g);
+			if (!ball.isScored()) ball.draw(g);
+			
+		}
+		for (int[] vals : WALL_BOUNDS) {
+			g.setColor(Color.RED);
+			g.drawRect(vals[0],vals[1],vals[2],vals[3]);
+		}
+		for (int[] vals : POCKETS) {
+			g.setColor(Color.RED);
+			g.drawRect(vals[0],vals[1],vals[2],vals[3]);
 		}
 
 		cueBall.drawAimLine(g);
